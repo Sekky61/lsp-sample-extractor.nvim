@@ -18,6 +18,7 @@ The following JSON will be copied to the clipboard:
 
 <details>
   <summary>Output</summary>
+
 ```json
 {
   "range": [
@@ -127,6 +128,7 @@ The following JSON will be copied to the clipboard:
   "code": "pub fn main() void {\n    std.log.err(\"Hello {s}\", .{global});\n}"
 }
 ```
+
 </details>
 
 As you can see, the snippet contains semantic tokens and hover information from the
@@ -135,7 +137,6 @@ exactly the same information you see in your editor!
 That includes:
 - imports from other files
 - all the active LSPs in your buffer
-
 
 ---
 
