@@ -32,7 +32,10 @@ local function semantic_tokens_for_position(line, character)
     end)
 end
 
-local function get_selection_range()
+--- Returns the zero-based, end exclusive index of the lines of the current selection.
+--- 
+--- @return table|nil A table containing the start and end line indices, or nil if no selection is active.
+local function get_selection_line_range()
     local vstart = vim.fn.getpos("'<")
     local vend = vim.fn.getpos("'>")
     util.log(vim.inspect(vstart))
@@ -40,7 +43,7 @@ local function get_selection_range()
         return nil
     end
     local line_start = vstart[2] - 1
-    local line_end = vend[2] - 1
+    local line_end = vend[2]
     return {
         line_start,
         line_end
@@ -53,16 +56,14 @@ local function display_popup(content)
         return
     end
 
-    -- format the content as JSON
-    local ok, json_content = pcall(vim.fn.json_encode, content)
+    local ok, json_content = pcall(vim.json.encode, content)
     if not ok then
         vim.notify("Failed to encode content as JSON", vim.log.levels.ERROR)
         return
     end
 
-    -- copy JSON to clipboard
     vim.fn.setreg("+", json_content)
-    vim.notify("JSON content copied to clipboard!")
+    vim.notify("JSON content copied to clipboard")
 end
 
 local api = {}
@@ -76,17 +77,20 @@ function api.genData()
         local hover_promises = {}
         local token_promises = {}
 
+        local range = get_selection_line_range()
+        if range == nil then
+            util.log("No range selected")
+            return
+        end
+        local startLine = range[1]
+        local endLine = range[2]
+
         if mode == 'v' then
             util.log("Visual mode not supported. Did you mean to use visual line mode?")
             return
         elseif mode == 'V' then
-            local range = get_selection_range()
-            if range == nil then
-                util.log("No range selected")
-                return
-            end
             util.log("Range " .. vim.inspect(range))
-            for lineIdx = range[1], range[2] do
+            for lineIdx = startLine, endLine do
                 local line = vim.fn.getline(lineIdx)
                 local width = string.len(line)
                 for char = 0, width do
@@ -101,7 +105,14 @@ function api.genData()
             table.insert(hover_promises, hover_for_position(pos[1] - 1, pos[2]))
         end
 
-        local combined_results = {}
+        local lines = vim.api.nvim_buf_get_lines(0, startLine, endLine, false)
+        local code = table.concat(lines, "\n")
+
+        local combined_results = {
+            version = "1",
+            code = code,
+            range = range,
+        }
         local pending_groups = 2 -- number of promise groups to await
 
         local function collect_results(key, results)
