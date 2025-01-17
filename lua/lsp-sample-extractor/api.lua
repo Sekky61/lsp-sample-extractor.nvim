@@ -91,8 +91,9 @@ function api.genData()
         elseif mode == 'V' then
             util.log("Range " .. vim.inspect(range))
             for lineIdx = startLine, endLine do
-                local line = vim.fn.getline(lineIdx)
+                local line = vim.fn.getline(lineIdx+1)
                 local width = string.len(line)
+                print("Line length", width)
                 for char = 0, width do
                     util.log("Dispatch range and sema " .. lineIdx .. " " .. char)
                     table.insert(hover_promises, hover_for_position(lineIdx, char))
