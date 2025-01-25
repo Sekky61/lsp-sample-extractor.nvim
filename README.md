@@ -1,8 +1,9 @@
 # lsp-sample-extractor.nvim
 
 A Neovim plugin to extract and export a code sample along with a lot of info from LSP.
+This is a very early version. Works on my machine kind of thing.
 
-Example:
+## Example
 
 Let's say you want to put the following code snippet into your blogpost.
 
@@ -138,16 +139,21 @@ That includes:
 - imports from other files
 - all the active LSPs in your buffer
 
----
-
 ## Installation
 
-As of now, no options are available.
+You can choose different binding for the trigger.
 
 - lazy.nvim:
 `"Sekky61/lsp-sample-extractor.nvim"`
 
----
+```lua
+{
+  'Sekky61/lsp-sample-extractor.nvim'
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+  },
+},
+```
 
 ## Usage
 
@@ -155,41 +161,24 @@ basic usage instructions:
 - how to activate the plugin  
 - key features walkthrough  
 
----
-
 ## Commands
 
 list and explain plugin-specific commands:  
 - `:CommandName` - what it does  
 
----
-
-## Keybindings
-
-recommend keybindings:  
-- `<leader>x` - triggers a specific feature  
-
----
-
 ## Dependencies
 
-The plugin has no dependencies.
-
----
+The plugin has a dependency on `plenary.nvim`.
 
 ## FAQ
 
-Common questions and issues:  
+Common questions and issues:
 - X
-
----
 
 ## Contributions Welcome
 
-contributions are welcome and greatly appreciated! if you have an idea for improvement, find a bug, or want to add a feature, feel free to open an issue and submit a pull request.
-
----
+Contributions are welcome and greatly appreciated! if you have an idea for improvement, find a bug, or want to add a feature, feel free to open an issue or submit a pull request.
 
 ## License
 
-this plugin is licensed under the mit license. you're free to use, modify, and distribute the code as long as the original license and copyright notice are included. see the license file for full details.
+this plugin is licensed under the MIT license.

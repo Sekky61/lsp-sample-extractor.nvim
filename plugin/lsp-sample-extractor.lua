@@ -5,5 +5,5 @@ K(
     {'n', 'x'},
     '<Plug>(lsp_sample_get)',
     api.genData(),
-    { expr = true, desc = 'Comment toggle linewise' }
+    { expr = true, desc = 'Extract code sample' }
 )
