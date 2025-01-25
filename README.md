@@ -144,27 +144,32 @@ That includes:
 You can choose different binding for the trigger.
 
 - lazy.nvim:
-`"Sekky61/lsp-sample-extractor.nvim"`
-
 ```lua
 {
-  'Sekky61/lsp-sample-extractor.nvim'
+  'Sekky61/lsp-sample-extractor.nvim',
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
+  keys = {
+    {
+      "<leader>lx",
+      "<Plug>(lsp_sample_get)",
+      desc = "Extract code sample",
+      mode = { 'n', 'x' }
+    },
+  }
 },
 ```
 
 ## Usage
 
-basic usage instructions:  
-- how to activate the plugin  
-- key features walkthrough  
+Select one or more lines with visual line (Shift + V) and launch the `<Plug>(lsp_sample_get)`.
+
+There is a known bug when selecting a range for the first time after nvim launch.
 
 ## Commands
 
-list and explain plugin-specific commands:  
-- `:CommandName` - what it does  
+No commands at the moment.
 
 ## Dependencies
 

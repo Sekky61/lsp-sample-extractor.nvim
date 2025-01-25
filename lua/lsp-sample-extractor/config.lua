@@ -1,7 +1,6 @@
 local Config = {
     state = {},
     config = {
-        gen = "<leader>lx", -- Lsp eXtract
         debug = true,
     },
 }

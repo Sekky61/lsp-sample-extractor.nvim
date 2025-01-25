@@ -7,12 +7,6 @@ local M = {}
 
 function M.setup(opts)
     local cfg = require("lsp-sample-extractor.config"):set(opts):get()
-    local K = vim.keymap.set
-
-    if cfg.gen then
-        K({'n', 'x'}, cfg.gen, '<Plug>(lsp_sample_get)', { desc = 'Extract Code Sample' })
-    end
-
     return cfg
 end
 
