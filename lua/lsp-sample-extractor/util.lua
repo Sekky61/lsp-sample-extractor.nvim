@@ -1,19 +1,19 @@
 local M = {}
 
 function M.log(msg)
-  local cfg = require("lsp-sample-extractor.config"):get()
-  if not cfg.debug then
-    return
-  end
-  print(vim.inspect(msg))
-  -- local log_file = vim.fn.stdpath("cache") .. "/nvim_debug.log"
-  -- local file = io.open(log_file, "a")
-  -- if file then
-  --   file:write(vim.fn.strftime("%Y-%m-%d %H:%M:%S") .. " - " .. msg .. "\n")
-  --   file:close()
-  -- else
-  --   vim.api.nvim_err_writeln("Failed to open debug log file: " .. log_file)
-  -- end
+    local cfg = require("lsp-sample-extractor.config"):get()
+    if not cfg.debug then
+        return
+    end
+    print(vim.inspect(msg))
+    -- local log_file = vim.fn.stdpath("cache") .. "/nvim_debug.log"
+    -- local file = io.open(log_file, "a")
+    -- if file then
+    --   file:write(vim.fn.strftime("%Y-%m-%d %H:%M:%S") .. " - " .. msg .. "\n")
+    --   file:close()
+    -- else
+    --   vim.api.nvim_err_writeln("Failed to open debug log file: " .. log_file)
+    -- end
 end
 
 function M.deep_equal(tbl1, tbl2)
@@ -62,45 +62,12 @@ function M.insert_unique(array, item)
     return true -- successfully inserted
 end
 
-function M.await_collect(promises, opts, callback)
-    local results = {}
-    local pending = #promises
-
-    opts = opts or {}
-    local deduplicate = opts.deduplicate
-    local destructure = opts.destructure
-
-    -- define the insertion method based on opts
-    local insert_result
-    if deduplicate then
-        insert_result = function(item)
-            M.insert_unique(results, item)
-        end
-    else
-        insert_result = function(item)
-            table.insert(results, item)
-        end
+function M.deduplicate(array)
+    local r = {}
+    for _, item in ipairs(array) do
+        M.insert_unique(r, item)
     end
-
-    -- process each promise
-    for _, promise in ipairs(promises) do
-        promise:th(function(result)
-            if result then
-                if destructure and type(result) == "table" then
-                    for _, item in ipairs(result) do
-                        insert_result(item)
-                    end
-                else
-                    insert_result(result)
-                end
-            end
-
-            pending = pending - 1
-            if pending == 0 then
-                callback(results)
-            end
-        end)
-    end
+    return r
 end
 
 return M
