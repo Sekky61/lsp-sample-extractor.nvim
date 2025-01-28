@@ -3,6 +3,9 @@
 A Neovim plugin to extract and export a code sample along with a lot of info from LSP.
 This is a very early version. Works on my machine kind of thing.
 
+Works well with:
+- [LSP Code Sample React component](https://github.com/Sekky61/lsp-code-sample)
+
 ## Example
 
 Let's say you want to put the following code snippet into your blogpost.
