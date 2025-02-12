@@ -135,7 +135,7 @@ The following JSON will be copied to the clipboard:
 
 </details>
 
-As you can see, the snippet contains semantic tokens and hover information from the
+As you can see, the snippet contains **semantic tokens** and hover information from the
 LSP server. You can parse this information in your code block component and provide your readers with
 exactly the same information you see in your editor!
 That includes:

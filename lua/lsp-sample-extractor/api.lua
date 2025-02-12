@@ -1,15 +1,15 @@
 local util = require("lsp-sample-extractor.util")
-local async = require "plenary.async"
+local async = require("plenary.async")
 
 -- Async
 local function hover_for_position(line, character)
     local params = vim.lsp.util.make_position_params()
     params.position = {
         line = line,
-        character = character
+        character = character,
     }
 
-    local res, err = async.lsp.buf_request_all(0, 'textDocument/hover', params)
+    local res, err = async.lsp.buf_request_all(0, "textDocument/hover", params)
     assert(not err, err)
     if res and res[1] and res[1].result then
         return res[1].result
@@ -40,7 +40,7 @@ local function get_selection_line_range()
     local line_end = vend[2]
     return {
         line_start,
-        line_end
+        line_end,
     }
 end
 
@@ -79,17 +79,24 @@ function api.genData()
         local startLine = range[1]
         local endLine = range[2]
 
-        if mode == 'v' then
+        if mode == "v" then
             util.log("Visual mode not supported. Did you mean to use visual line mode?")
             return
-        elseif mode == 'V' then
+        elseif mode == "V" then
             for lineIdx = startLine, endLine do
                 local line = vim.fn.getline(lineIdx + 1)
                 local width = string.len(line)
                 print("Line length", width)
                 for char = 0, width do
                     table.insert(hovers, hover_for_position(lineIdx, char))
-                    table.insert(tokens, semantic_tokens_for_position(lineIdx, char))
+                    local posTokens = semantic_tokens_for_position(lineIdx, char)
+                    if type(posTokens) == "table" then
+                        for _, token in ipairs(posTokens) do
+                            table.insert(tokens, token)
+                        end
+                    else
+                        table.insert(tokens, posTokens)
+                    end
                 end
             end
         else
@@ -106,7 +113,7 @@ function api.genData()
             code = code,
             range = range,
             hover = util.deduplicate(hovers),
-            tokens = util.deduplicate(tokens)
+            tokens = util.deduplicate(tokens),
         }
         display_popup(combined_results)
     end
