@@ -9,22 +9,28 @@ local function hover_for_position(line, character)
         character = character,
     }
 
-    local res, err = async.lsp.buf_request_all(0, "textDocument/hover", params)
-    assert(not err, err)
+    local res = async.lsp.buf_request_all(0, "textDocument/hover", params)
     if res and res[1] and res[1].result then
         return res[1].result
-    else
-        return nil
     end
+    return nil
 end
 
-local function semantic_tokens_for_position(line, character)
-    local tokens = vim.lsp.semantic_tokens.get_at_pos(0, line, character)
-    if tokens then
-        return tokens
-    else
-        return nil
+local function get_semantic_tokens_in_range(start_line, end_line)
+    local tokens = {}
+    
+    for line = start_line, end_line - 1 do
+        local line_tokens = vim.lsp.semantic_tokens.get_at_pos(0, line, 0)
+        if line_tokens then
+            for _, token in ipairs(line_tokens) do
+                if token.line >= start_line and token.line < end_line then
+                    table.insert(tokens, token)
+                end
+            end
+        end
     end
+    
+    return tokens
 end
 
 --- Returns the zero-based, end exclusive index of the lines of the current selection.
@@ -67,6 +73,16 @@ function api.genData()
         util.log("-----")
         util.log("-- Invocation of getData --")
         util.log("-----")
+        
+        -- Check if LSP clients are available
+        local clients = vim.lsp.get_clients({ bufnr = 0 })
+        if #clients == 0 then
+            vim.notify("No LSP clients attached to current buffer", vim.log.levels.WARN)
+            return
+        end
+        
+        vim.notify("Extracting LSP data...", vim.log.levels.INFO)
+        
         local mode = vim.fn.mode()
         local hovers = {}
         local tokens = {}
@@ -74,6 +90,7 @@ function api.genData()
         local range = get_selection_line_range()
         if range == nil then
             util.log("No range selected")
+            vim.notify("No selection found. Please select lines in visual mode.", vim.log.levels.WARN)
             return
         end
         local startLine = range[1]
@@ -81,28 +98,35 @@ function api.genData()
 
         if mode == "v" then
             util.log("Visual mode not supported. Did you mean to use visual line mode?")
+            vim.notify("Visual character mode not supported. Please use visual line mode (Shift+V)", vim.log.levels.WARN)
             return
         elseif mode == "V" then
-            for lineIdx = startLine, endLine do
+            -- Get semantic tokens for the entire range efficiently
+            local range_tokens = get_semantic_tokens_in_range(startLine, endLine)
+            for _, token in ipairs(range_tokens) do
+                table.insert(tokens, token)
+            end
+            
+            -- Get hover info for key positions (start of each line)
+            for lineIdx = startLine, endLine - 1 do
                 local line = vim.fn.getline(lineIdx + 1)
                 local width = string.len(line)
-                print("Line length", width)
-                for char = 0, width do
-                    table.insert(hovers, hover_for_position(lineIdx, char))
-                    local posTokens = semantic_tokens_for_position(lineIdx, char)
-                    if type(posTokens) == "table" then
-                        for _, token in ipairs(posTokens) do
-                            table.insert(tokens, token)
-                        end
-                    else
-                        table.insert(tokens, posTokens)
+                util.log("Processing line " .. lineIdx .. " with length " .. width)
+                
+                if width > 0 then
+                    local hover_result = hover_for_position(lineIdx, 0)
+                    if hover_result then
+                        table.insert(hovers, hover_result)
                     end
                 end
             end
         else
             -- Single position hover for normal mode
             local pos = vim.api.nvim_win_get_cursor(0)
-            table.insert(hovers, hover_for_position(pos[1] - 1, pos[2]))
+            local hover_result = hover_for_position(pos[1] - 1, pos[2])
+            if hover_result then
+                table.insert(hovers, hover_result)
+            end
         end
 
         local lines = vim.api.nvim_buf_get_lines(0, startLine, endLine, false)
@@ -115,10 +139,23 @@ function api.genData()
             hover = util.deduplicate(hovers),
             tokens = util.deduplicate(tokens),
         }
+        
+        util.log("Collected " .. #hovers .. " hover entries and " .. #tokens .. " tokens")
         display_popup(combined_results)
     end
     return function()
-        async.run(f, nil)
+        async.run(function()
+            local ok, err = pcall(f)
+            if not ok then
+                vim.notify("Error extracting LSP data: " .. tostring(err), vim.log.levels.ERROR)
+                util.log("Function error: " .. tostring(err))
+            end
+        end, function(async_err)
+            if async_err then
+                vim.notify("Async error: " .. vim.inspect(async_err), vim.log.levels.ERROR)
+                util.log("Async error: " .. vim.inspect(async_err))
+            end
+        end)
     end
 end
 
