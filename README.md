@@ -183,6 +183,49 @@ The plugin has a dependency on `plenary.nvim`.
 Common questions and issues:
 - X
 
+## Implementation
+
+The plugin works through a simple process:
+
+### 1. Selection Detection
+- Detects visual line mode selections (Shift+V)
+
+### 2. Data Collection
+The plugin collects two types of LSP data:
+
+**Semantic Tokens**:
+- Scans each line in the selection for word boundaries and special characters
+- Queries LSP semantic tokens at strategic positions (not every character)
+- Deduplicates tokens by position and type to avoid redundancy
+- Each token includes: line, start/end columns, type, modifiers, and client ID
+
+**Hover Information**:
+- Identifies positions where semantic tokens exist
+- Makes async LSP hover requests for those positions
+- Collects detailed documentation, type information, and context
+- Associates hover data with specific character ranges
+
+### 3. Async Processing
+- Uses `plenary.nvim` for non-blocking async operations
+- Handles multiple LSP clients gracefully
+- Provides user feedback during processing
+- Manages errors without blocking the editor
+
+### 4. Output Generation
+- Combines code text, line ranges, tokens, and hover data
+- Deduplicates collected information to reduce noise
+- Serializes everything to JSON format
+- Copies result to system clipboard
+
+The resulting JSON contains:
+- `version`: Plugin version for compatibility
+- `code`: Raw text of the selected lines
+- `range`: Start and end line numbers (zero-based)
+- `tokens`: Array of semantic token objects with positioning and type info
+- `hover`: Array of hover responses with documentation and context
+
+This rich dataset enables frontend components to recreate the same semantic highlighting and documentation tooltips that you see in your editor.
+
 ## Contributions Welcome
 
 Contributions are welcome and greatly appreciated! if you have an idea for improvement, find a bug, or want to add a feature, feel free to open an issue or submit a pull request.
